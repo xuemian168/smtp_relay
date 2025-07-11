@@ -30,3 +30,4 @@ npm-debug.log
 *.sh
 !update.sh
 *.env
+!install.sh
