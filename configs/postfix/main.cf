@@ -1,0 +1,74 @@
+# Postfix主配置文件 - SMTP中继服务器
+# 基本配置
+myhostname = mail.smtp-relay.local
+mydomain = smtp-relay.local
+myorigin = $mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost
+
+# 网络配置
+inet_interfaces = all
+inet_protocols = ipv4
+
+# 邮件队列配置
+message_size_limit = 26214400  # 25MB
+mailbox_size_limit = 0
+
+# 中继配置
+relayhost = 
+relay_domains = 
+mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+
+# SMTP认证配置
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+broken_sasl_auth_clients = yes
+
+# 访问控制
+smtpd_helo_required = yes
+smtpd_client_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination,
+    reject_invalid_hostname,
+    reject_non_fqdn_hostname
+
+smtpd_sender_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_non_fqdn_sender,
+    reject_unknown_sender_domain
+
+smtpd_recipient_restrictions = 
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination,
+    reject_invalid_hostname,
+    reject_non_fqdn_hostname,
+    reject_non_fqdn_recipient,
+    reject_unknown_recipient_domain
+
+# 日志配置
+maillog_file = /dev/stdout
+
+# 队列配置
+maximal_queue_lifetime = 1d
+bounce_queue_lifetime = 1d
+maximal_backoff_time = 4000s
+minimal_backoff_time = 300s
+queue_run_delay = 300s
+
+# TLS配置（可选）
+smtpd_use_tls = yes
+smtpd_tls_cert_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtpd_tls_security_level = may
+smtp_tls_security_level = may
+
+# 性能优化
+default_process_limit = 100
+smtpd_client_connection_count_limit = 50
+smtpd_client_connection_rate_limit = 30
+anvil_rate_time_unit = 60s 

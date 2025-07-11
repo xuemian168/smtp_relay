@@ -1,0 +1,152 @@
+services:
+  # SMTP中继API服务
+  smtp-relay-api:
+    build:
+      context: .
+      dockerfile: cmd/api/Dockerfile
+    container_name: smtp-relay-api
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/smtp_relay
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - GIN_MODE=release
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # SMTP服务器
+  smtp-relay-server:
+    build:
+      context: .
+      dockerfile: cmd/smtp/Dockerfile
+    container_name: smtp-relay-server
+    ports:
+      - "2525:25"   # SMTP中继接收端口
+      - "587:587"   # SMTP提交
+      - "465:465"   # SMTPS
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/smtp_relay
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+      - postfix
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # 邮件处理工作进程
+  smtp-relay-worker:
+    build:
+      context: .
+      dockerfile: cmd/worker/Dockerfile
+    container_name: smtp-relay-worker
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/smtp_relay
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # MongoDB数据库
+  mongodb:
+    image: mongo:6.0
+    container_name: smtp-relay-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=smtp_relay
+    volumes:
+      - ./data/mongodb:/data/db
+      - ./configs/mongodb/init.js:/docker-entrypoint-initdb.d/01-init.js:ro
+      - ./scripts/init-smtp-config.js:/docker-entrypoint-initdb.d/02-init-smtp-config.js:ro
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: smtp-relay-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # RabbitMQ消息队列
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: smtp-relay-rabbitmq
+    ports:
+      - "5672:5672"   # AMQP端口
+      - "15672:15672" # 管理界面
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # Postfix上游SMTP服务器
+  postfix:
+    image: boky/postfix:latest
+    container_name: smtp-relay-postfix
+    hostname: mail.smtp-relay.local
+    environment:
+      - HOSTNAME=mail.smtp-relay.local
+      - ALLOWED_SENDER_DOMAINS=smtp-relay.local
+      - RELAYHOST=
+      - RELAYHOST_USERNAME=
+      - RELAYHOST_PASSWORD=
+    ports:
+      - "25:25"   # 对外提供SMTP服务
+    volumes:
+      - postfix_data:/var/spool/postfix
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: smtp-relay-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - smtp-relay-api
+    restart: unless-stopped
+    networks:
+      - smtp-relay-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:
+  postfix_data:
+
+networks:
+  smtp-relay-network:
+    driver: bridge 

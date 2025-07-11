@@ -1,0 +1,895 @@
+basePath: /
+definitions:
+  api.APIResponse:
+    properties:
+      data: {}
+      error:
+        example: 错误信息
+        type: string
+      message:
+        example: 操作成功
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.CreateCredentialRequest:
+    properties:
+      description:
+        example: 用于发送营销邮件的SMTP凭据
+        maxLength: 200
+        type: string
+      name:
+        example: My SMTP Credential
+        maxLength: 50
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  api.CreateCredentialResponse:
+    properties:
+      data:
+        properties:
+          credential:
+            $ref: '#/definitions/models.SMTPCredential'
+          password:
+            example: generated_password
+            type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.CredentialListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.SMTPCredential'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.CredentialResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.SMTPCredential'
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.LoginRequest:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: user@example.com
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  api.LoginResponse:
+    properties:
+      success:
+        example: true
+        type: boolean
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/api.UserInfo'
+    type: object
+  api.MailLogListResponse:
+    properties:
+      data:
+        properties:
+          mail_logs:
+            items:
+              $ref: '#/definitions/models.MailLog'
+            type: array
+          page:
+            example: 1
+            type: integer
+          page_size:
+            example: 20
+            type: integer
+          pages:
+            example: 5
+            type: integer
+          total:
+            example: 100
+            type: integer
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.MailLogResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.MailLog'
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.QuotaStatsResponse:
+    properties:
+      data:
+        properties:
+          credential_quotas:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+          user_settings:
+            properties:
+              daily_quota:
+                example: 1000
+                type: integer
+              hourly_quota:
+                example: 100
+                type: integer
+            type: object
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.RecentMailLogsResponse:
+    properties:
+      data:
+        properties:
+          days:
+            example: 30
+            type: integer
+          mail_logs:
+            items:
+              $ref: '#/definitions/models.MailLog'
+            type: array
+          page:
+            example: 1
+            type: integer
+          page_size:
+            example: 50
+            type: integer
+          pages:
+            example: 2
+            type: integer
+          statistics:
+            additionalProperties:
+              type: integer
+            type: object
+          total:
+            example: 100
+            type: integer
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        minLength: 8
+        type: string
+      username:
+        example: testuser
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  api.RegisterResponse:
+    properties:
+      success:
+        example: true
+        type: boolean
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/api.UserInfo'
+    type: object
+  api.ResetPasswordResponse:
+    properties:
+      message:
+        example: 密码重置成功
+        type: string
+      password:
+        example: new_generated_password
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.StatsResponse:
+    properties:
+      data:
+        properties:
+          credential_count:
+            example: 3
+            type: integer
+          credential_stats:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+          mail_stats:
+            additionalProperties: true
+            type: object
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.UpdateCredentialRequest:
+    properties:
+      description:
+        example: 更新后的SMTP凭据描述
+        maxLength: 200
+        type: string
+      name:
+        example: Updated SMTP Credential
+        maxLength: 50
+        minLength: 1
+        type: string
+      settings:
+        $ref: '#/definitions/models.SMTPCredentialSettings'
+    required:
+    - name
+    type: object
+  api.UpdateUserInfoRequest:
+    properties:
+      settings:
+        $ref: '#/definitions/models.UserSettings'
+      username:
+        example: newusername
+        maxLength: 50
+        minLength: 3
+        type: string
+    type: object
+  api.UserInfo:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      username:
+        example: testuser
+        type: string
+    type: object
+  api.UserInfoResponse:
+    properties:
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      settings:
+        $ref: '#/definitions/models.UserSettings'
+      status:
+        example: active
+        type: string
+      username:
+        example: testuser
+        type: string
+    type: object
+  models.MailLog:
+    properties:
+      attempts:
+        type: integer
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      credential_id:
+        type: string
+      error_message:
+        type: string
+      from:
+        type: string
+      id:
+        type: string
+      last_attempt:
+        type: string
+      message_id:
+        type: string
+      relay_ip:
+        type: string
+      size:
+        type: integer
+      status:
+        description: queued, sending, sent, failed
+        type: string
+      subject:
+        type: string
+      to:
+        items:
+          type: string
+        type: array
+      user_id:
+        type: string
+    type: object
+  models.SMTPCredential:
+    properties:
+      created_at:
+        type: string
+      description:
+        description: 描述信息
+        type: string
+      id:
+        type: string
+      last_used:
+        type: string
+      name:
+        description: 凭据名称，如"mailcow-server1"
+        type: string
+      settings:
+        $ref: '#/definitions/models.SMTPCredentialSettings'
+      status:
+        description: active, disabled
+        type: string
+      updated_at:
+        type: string
+      usage_count:
+        description: 使用次数
+        type: integer
+      user_id:
+        type: string
+      username:
+        description: SMTP用户名
+        type: string
+    type: object
+  models.SMTPCredentialSettings:
+    properties:
+      allowed_domains:
+        description: 允许发送的域名
+        items:
+          type: string
+        type: array
+      daily_quota:
+        description: 该凭据的日配额
+        type: integer
+      hourly_quota:
+        description: 该凭据的小时配额
+        type: integer
+      max_recipients:
+        description: 单封邮件最大收件人数
+        type: integer
+    type: object
+  models.UserSettings:
+    properties:
+      allowed_domains:
+        items:
+          type: string
+        type: array
+      daily_quota:
+        type: integer
+      hourly_quota:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@smtp-relay.local
+    name: API Support
+  description: 基于Go+Gin的SMTP转发中继服务API文档
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: SMTP中继服务API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录获取JWT令牌
+      parameters:
+      - description: 登录信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登录成功
+          schema:
+            $ref: '#/definitions/api.LoginResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 认证失败
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      summary: 用户登录
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 注册新用户账户
+      parameters:
+      - description: 注册信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 注册成功
+          schema:
+            $ref: '#/definitions/api.RegisterResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      summary: 用户注册
+      tags:
+      - auth
+  /api/v1/credentials:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的所有SMTP凭据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.CredentialListResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取SMTP凭据列表
+      tags:
+      - SMTP Credentials
+    post:
+      consumes:
+      - application/json
+      description: 为当前用户创建新的SMTP凭据
+      parameters:
+      - description: 凭据信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/api.CreateCredentialResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建SMTP凭据
+      tags:
+      - SMTP Credentials
+  /api/v1/credentials/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定ID的SMTP凭据
+      parameters:
+      - description: 凭据ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 凭据不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除SMTP凭据
+      tags:
+      - SMTP Credentials
+    get:
+      consumes:
+      - application/json
+      description: 获取指定ID的SMTP凭据详情
+      parameters:
+      - description: 凭据ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.CredentialResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 凭据不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取单个SMTP凭据
+      tags:
+      - SMTP Credentials
+    put:
+      consumes:
+      - application/json
+      description: 更新指定ID的SMTP凭据信息
+      parameters:
+      - description: 凭据ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateCredentialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 凭据不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新SMTP凭据
+      tags:
+      - SMTP Credentials
+  /api/v1/credentials/{id}/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: 重置指定ID的SMTP凭据密码
+      parameters:
+      - description: 凭据ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 重置成功
+          schema:
+            $ref: '#/definitions/api.ResetPasswordResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 凭据不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 重置SMTP凭据密码
+      tags:
+      - SMTP Credentials
+  /api/v1/logs:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的邮件发送日志，支持分页和筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 邮件状态
+        enum:
+        - queued
+        - sending
+        - sent
+        - failed
+        in: query
+        name: status
+        type: string
+      - description: 发件人筛选
+        in: query
+        name: from
+        type: string
+      - description: 收件人筛选
+        in: query
+        name: to
+        type: string
+      - description: 开始日期
+        format: date
+        in: query
+        name: date_from
+        type: string
+      - description: 结束日期
+        format: date
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.MailLogListResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取MailLog
+      tags:
+      - MailLog
+  /api/v1/logs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定ID的MailLog详情
+      parameters:
+      - description: MailLogID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.MailLogResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: MailLog不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取单个MailLog
+      tags:
+      - MailLog
+  /api/v1/logs/recent:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户近期发信历史，支持天数筛选和状态筛选，包含统计信息
+      parameters:
+      - default: 30
+        description: 最近N天
+        in: query
+        maximum: 365
+        minimum: 1
+        name: days
+        type: integer
+      - description: 邮件状态
+        enum:
+        - queued
+        - sending
+        - sent
+        - failed
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: 每页数量
+        in: query
+        maximum: 100
+        minimum: 1
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.RecentMailLogsResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取近期MailLog
+      tags:
+      - MailLog
+  /api/v1/stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户邮件统计信息和凭据统计信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.StatsResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取统计信息
+      tags:
+      - status
+  /api/v1/stats/quota:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户邮件配额使用情况统计
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.QuotaStatsResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取配额统计
+      tags:
+      - status
+  /api/v1/user:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的详细信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.UserInfoResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取用户信息
+      tags:
+      - usermgmt
+    put:
+      consumes:
+      - application/json
+      description: 更新当前用户的信息
+      parameters:
+      - description: 更新信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateUserInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新用户信息
+      tags:
+      - usermgmt
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: 检查服务健康状态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 服务正常
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 健康检查
+      tags:
+      - system
+securityDefinitions:
+  BearerAuth:
+    description: 'Bearer token认证，格式: Bearer <token>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
