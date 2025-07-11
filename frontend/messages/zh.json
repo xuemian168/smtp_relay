@@ -200,5 +200,8 @@
     "apiKeys": "API密钥",
     "logs": "邮件日志",
     "settings": "设置"
+  },
+  "maillogs": {
+    "title": "邮件日志"
   }
 } 

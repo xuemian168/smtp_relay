@@ -200,5 +200,8 @@
     "apiKeys": "API Keys",
     "logs": "Mail Logs",
     "settings": "Settings"
+  },
+  "maillogs": {
+    "title": "Mail Logs"
   }
 } 

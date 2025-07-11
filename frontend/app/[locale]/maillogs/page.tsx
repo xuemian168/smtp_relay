@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from 'next-intl';
-import MailLogList from '@/components/maillog/mailloglist';
+import MailLogList from '@/components/maillog/MailLogList';
 import DashboardShell from '@/components/layout/DashboardShell';
 
 export default function MailLogsPage() {

@@ -14,10 +14,28 @@ import {
 import { useTranslations } from 'next-intl';
 import { useTheme } from '@/components/layout/ThemeProvider';
 import LanguageToggle from '@/components/layout/LanguageToggle';
+import { useAuth } from '@/lib/api/auth';
+import { useRedirect } from '@/lib/hooks/useRedirect';
+// import { useToast } from '@/components/ui/use-toast';
 
 const Header = () => {
   const t = useTranslations('header');
   const { theme, setTheme } = useTheme();
+  const { logout } = useAuth();
+  const { redirectToLogin } = useRedirect();
+  // const { toast } = useToast ? useToast() : { toast: () => {} };
+
+  const handleLogout = async () => {
+    try {
+      // TODO: 预留后端API调用
+      // await api.logout();
+    } catch (e) {
+      // 可在此处理API错误
+    }
+    logout();
+    redirectToLogin();
+    // toast && toast({ description: t('logoutSuccess') || '已退出登录' });
+  };
 
   return (
     <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -62,8 +80,8 @@ const Header = () => {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>{t('settings')}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span>Logout</span>
+              <DropdownMenuItem onClick={handleLogout}>
+                <span>{t('logout')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
