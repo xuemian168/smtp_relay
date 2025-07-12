@@ -1,6 +1,6 @@
 # Postfix主配置文件 - SMTP中继服务器
 # 基本配置
-myhostname = mail.smtp-relay.local
+myhostname = mail.ict.run
 mydomain = smtp-relay.local
 myorigin = $mydomain
 mydestination = $myhostname, localhost.$mydomain, localhost
@@ -15,7 +15,7 @@ mailbox_size_limit = 0
 
 # 中继配置
 relayhost = 
-relay_domains = 
+relay_domains = *
 mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
 
 # SMTP认证配置
@@ -39,14 +39,7 @@ smtpd_sender_restrictions =
     reject_non_fqdn_sender,
     reject_unknown_sender_domain
 
-smtpd_recipient_restrictions = 
-    permit_mynetworks,
-    permit_sasl_authenticated,
-    reject_unauth_destination,
-    reject_invalid_hostname,
-    reject_non_fqdn_hostname,
-    reject_non_fqdn_recipient,
-    reject_unknown_recipient_domain
+smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
 
 # 日志配置
 maillog_file = /dev/stdout

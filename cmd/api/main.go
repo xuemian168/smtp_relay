@@ -1,4 +1,3 @@
-// Package main SMTP中继服务API
 // @title SMTP中继服务API
 // @version 1.0
 // @description 基于Go+Gin的SMTP转发中继服务API文档

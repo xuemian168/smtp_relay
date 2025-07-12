@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { credentialsApi } from '@/lib/api';
+import { getSystem } from '@/lib/api/orval/system';
 import {
   Dialog,
   DialogTrigger,
@@ -22,8 +23,9 @@ import {
   TableBody,
   TableCell
 } from '@/components/ui/table';
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, Info, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import DKIMManager from './DKIMManager';
 
 function AddCredentialModal({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: (result?: any) => void }) {
   const t = useTranslations('credentials');
@@ -147,6 +149,59 @@ function ConfirmDeleteModal({ open, onClose, onConfirm, name }: { open: boolean;
   );
 }
 
+function ComplianceDialog({ open, onClose, relayDomain, relayIP, loading, error }: { open: boolean; onClose: () => void; relayDomain: string; relayIP: string; loading: boolean; error: string | null }) {
+  const t = useTranslations('credentials');
+  return (
+    <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            <Info className="inline-block mr-2 text-blue-500" />{t('complianceGuide')} {t('complianceGuideDescription')}
+          </DialogTitle>
+        </DialogHeader>
+        {loading ? (
+          <div className="text-gray-500 py-4">{t('loading')}</div>
+        ) : error ? (
+          <div className="text-red-500 py-4">{error}</div>
+        ) : !relayDomain || !relayIP ? (
+          <div className="text-gray-500 py-4">{t('relayInfoUnavailable') || 'Relay info unavailable'}</div>
+        ) : (
+          <div className="space-y-3 text-sm">
+            <div>
+              <b>{t('spfRecord')}</b><br />
+              {t('spfRecordDescription', { relayDomain, relayIP })}<br />
+              <code className="block bg-gray-100 p-1 rounded my-1 select-all">v=spf1 ip4:{relayIP} -all</code>
+              或<br />
+              <code className="block bg-gray-100 p-1 rounded my-1 select-all">v=spf1 include:{relayDomain} -all</code>
+            </div>
+            <div>
+              <b>{t('dkimSignature')}</b><br />
+              {t('dkimSignatureDescription', { relayDomain })}<br />
+              {t('dkimSignatureDescription2')}
+            </div>
+            <div>
+              <b>{t('reverseDns')}</b><br />
+              {t('reverseDnsDescription', { relayIP, relayDomain })}
+            </div>
+            <div>
+              <b>{t('aRecord')}</b><br />
+              {t('aRecordDescription', { relayDomain, relayIP })}
+            </div>
+            <div className="mt-2">
+              <b>{t('detectionTools')}</b><br />
+              <a href="https://mxtoolbox.com/spf.aspx" target="_blank" className="text-blue-600 underline">{t('spfDetection')}</a>、
+              <a href="https://mxtoolbox.com/dkim.aspx" target="_blank" className="text-blue-600 underline">{t('dkimDetection')}</a>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button onClick={onClose}>{t('iKnow')}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function CredentialList() {
   const t = useTranslations('credentials');
   const [list, setList] = useState<any[]>([]);
@@ -159,6 +214,12 @@ export default function CredentialList() {
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [newUsername, setNewUsername] = useState('');
+  const [showCompliance, setShowCompliance] = useState(false);
+  const [showDKIM, setShowDKIM] = useState(false);
+  const [relayDomain, setRelayDomain] = useState('');
+  const [relayIP, setRelayIP] = useState('');
+  const [relayInfoLoading, setRelayInfoLoading] = useState(true);
+  const [relayInfoError, setRelayInfoError] = useState<string | null>(null);
 
   const fetchList = async () => {
     setLoading(true);
@@ -174,6 +235,18 @@ export default function CredentialList() {
   };
 
   useEffect(() => {
+    // 获取 relay info
+    setRelayInfoLoading(true);
+    getSystem().getApiRelayInfo()
+      .then(res => {
+        setRelayDomain(res.data?.relayDomain || '');
+        setRelayIP(res.data?.relayIP || '');
+        setRelayInfoError(null);
+      })
+      .catch(e => {
+        setRelayInfoError(e.message || 'Failed to fetch relay info');
+      })
+      .finally(() => setRelayInfoLoading(false));
     fetchList();
   }, []);
 
@@ -198,14 +271,36 @@ export default function CredentialList() {
       setNewPassword(res.data.password);
       setNewUsername(res.data.credential.username);
       setShowPassword(true);
+      setShowCompliance(true); // 新建凭据成功后自动弹出合规性Dialog
     }
   };
 
   return (
     <div>
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end mb-2 gap-2">
+        <Button variant="outline" onClick={() => setShowCompliance(true)}>
+          <Info className="inline-block mr-1 h-4 w-4 text-blue-500" />{t('complianceGuide')}
+        </Button>
+        <Button variant="outline" onClick={() => setShowDKIM(true)}>
+          <Shield className="inline-block mr-1 h-4 w-4 text-green-500" />{t('dkimManagement')}
+        </Button>
         <Button onClick={() => setShowAdd(true)}>{t('add')}</Button>
       </div>
+      <ComplianceDialog open={showCompliance} onClose={() => setShowCompliance(false)} relayDomain={relayDomain} relayIP={relayIP} loading={relayInfoLoading} error={relayInfoError} />
+      
+      {/* DKIM管理对话框 */}
+      <Dialog open={showDKIM} onOpenChange={setShowDKIM}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-500" />
+              DKIM密钥管理
+            </DialogTitle>
+          </DialogHeader>
+          <DKIMManager />
+        </DialogContent>
+      </Dialog>
+      
       <AddCredentialModal open={showAdd} onClose={() => setShowAdd(false)} onSuccess={handleAddSuccess} />
       <PasswordModal open={showPassword} username={newUsername} password={newPassword} onClose={() => setShowPassword(false)} />
       <ConfirmDeleteModal

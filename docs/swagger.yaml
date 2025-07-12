@@ -41,6 +41,21 @@ definitions:
         example: true
         type: boolean
     type: object
+  api.CreateDKIMKeyRequest:
+    properties:
+      domain:
+        example: example.com
+        type: string
+      key_size:
+        example: 2048
+        type: integer
+      selector:
+        example: default
+        type: string
+    required:
+    - domain
+    - selector
+    type: object
   api.CredentialListResponse:
     properties:
       data:
@@ -55,6 +70,40 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/models.SMTPCredential'
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.DKIMKeyPairListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.DKIMKeyPair'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.DKIMKeyPairResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.DKIMKeyPair'
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.DKIMValidationResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.DKIMValidationResult'
+      success:
+        example: true
+        type: boolean
+    type: object
+  api.DNSRecordResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.DNSRecord'
       success:
         example: true
         type: boolean
@@ -200,6 +249,24 @@ definitions:
       user:
         $ref: '#/definitions/api.UserInfo'
     type: object
+  api.RelayInfoData:
+    description: SMTP中继域名和IP
+    properties:
+      relayDomain:
+        example: mail.ict.run
+        type: string
+      relayIP:
+        example: 110.151.22.51
+        type: string
+    type: object
+  api.RelayInfoResponse:
+    properties:
+      data:
+        $ref: '#/definitions/api.RelayInfoData'
+      success:
+        example: true
+        type: boolean
+    type: object
   api.ResetPasswordResponse:
     properties:
       message:
@@ -288,6 +355,84 @@ definitions:
         type: string
       username:
         example: testuser
+        type: string
+    type: object
+  models.DKIMKeyPair:
+    properties:
+      algorithm:
+        description: 签名算法（rsa-sha256）
+        type: string
+      created_at:
+        type: string
+      dns_record:
+        description: 生成的DNS TXT记录
+        type: string
+      dns_verified:
+        description: DNS记录是否已验证
+        type: boolean
+      domain:
+        description: 签名域名
+        type: string
+      expires_at:
+        description: 密钥过期时间
+        type: string
+      id:
+        type: string
+      key_size:
+        description: 密钥长度（1024, 2048）
+        type: integer
+      last_verified:
+        description: 最后验证时间
+        type: string
+      public_key:
+        description: 公钥
+        type: string
+      selector:
+        description: DKIM选择器
+        type: string
+      status:
+        description: active, inactive, expired
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.DKIMValidationResult:
+    properties:
+      checked_at:
+        type: string
+      dns_found:
+        type: boolean
+      dns_record:
+        type: string
+      domain:
+        type: string
+      error_message:
+        type: string
+      expected_dns:
+        type: string
+      selector:
+        type: string
+      valid:
+        type: boolean
+    type: object
+  models.DNSRecord:
+    properties:
+      name:
+        description: 记录名称，如 selector._domainkey.example.com
+        type: string
+      priority:
+        description: 优先级（对TXT记录通常为0）
+        type: integer
+      ttl:
+        description: TTL值
+        type: integer
+      type:
+        description: TXT
+        type: string
+      value:
+        description: 记录值
         type: string
     type: object
   models.MailLog:
@@ -396,6 +541,21 @@ info:
   title: SMTP中继服务API
   version: "1.0"
 paths:
+  /api/relay-info:
+    get:
+      consumes:
+      - application/json
+      description: 获取SMTP中继域名和IP
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.RelayInfoResponse'
+      summary: 获取SMTP中继信息
+      tags:
+      - system
   /api/v1/auth/login:
     post:
       consumes:
@@ -636,6 +796,212 @@ paths:
       summary: 重置SMTP凭据密码
       tags:
       - SMTP Credentials
+  /api/v1/dkim/keys:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的所有DKIM密钥对
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.DKIMKeyPairListResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取DKIM密钥对列表
+      tags:
+      - DKIM
+    post:
+      consumes:
+      - application/json
+      description: 为指定域名创建新的DKIM密钥对
+      parameters:
+      - description: 密钥对信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateDKIMKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/api.DKIMKeyPairResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建DKIM密钥对
+      tags:
+      - DKIM
+  /api/v1/dkim/keys/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定ID的DKIM密钥对
+      parameters:
+      - description: 密钥对ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 密钥对不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除DKIM密钥对
+      tags:
+      - DKIM
+    get:
+      consumes:
+      - application/json
+      description: 获取指定ID的DKIM密钥对详情
+      parameters:
+      - description: 密钥对ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.DKIMKeyPairResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 密钥对不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取单个DKIM密钥对
+      tags:
+      - DKIM
+  /api/v1/dkim/keys/{id}/dns:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定密钥对的DNS TXT记录信息
+      parameters:
+      - description: 密钥对ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/api.DNSRecordResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 密钥对不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取DKIM DNS记录
+      tags:
+      - DKIM
+  /api/v1/dkim/keys/{id}/rotate:
+    post:
+      consumes:
+      - application/json
+      description: 为指定密钥对生成新的密钥，旧密钥标记为即将过期
+      parameters:
+      - description: 密钥对ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 轮换成功
+          schema:
+            $ref: '#/definitions/api.DKIMKeyPairResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 密钥对不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 轮换DKIM密钥对
+      tags:
+      - DKIM
+  /api/v1/dkim/keys/{id}/verify:
+    post:
+      consumes:
+      - application/json
+      description: 验证指定密钥对的DNS记录是否正确配置
+      parameters:
+      - description: 密钥对ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 验证完成
+          schema:
+            $ref: '#/definitions/api.DKIMValidationResponse'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+        "404":
+          description: 密钥对不存在
+          schema:
+            $ref: '#/definitions/api.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 验证DKIM DNS记录
+      tags:
+      - DKIM
   /api/v1/logs:
     get:
       consumes:

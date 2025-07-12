@@ -16,6 +16,29 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
+        "/api/relay-info": {
+            "get": {
+                "description": "获取SMTP中继域名和IP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "获取SMTP中继信息",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.RelayInfoResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "description": "用户登录获取JWT令牌",
@@ -385,6 +408,332 @@
                     },
                     "404": {
                         "description": "凭据不存在",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dkim/keys": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前用户的所有DKIM密钥对",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "获取DKIM密钥对列表",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.DKIMKeyPairListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "为指定域名创建新的DKIM密钥对",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "创建DKIM密钥对",
+                "parameters": [
+                    {
+                        "description": "密钥对信息",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateDKIMKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "创建成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.DKIMKeyPairResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dkim/keys/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取指定ID的DKIM密钥对详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "获取单个DKIM密钥对",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "密钥对ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.DKIMKeyPairResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "密钥对不存在",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "删除指定ID的DKIM密钥对",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "删除DKIM密钥对",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "密钥对ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "密钥对不存在",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dkim/keys/{id}/dns": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取指定密钥对的DNS TXT记录信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "获取DKIM DNS记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "密钥对ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.DNSRecordResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "密钥对不存在",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dkim/keys/{id}/rotate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "为指定密钥对生成新的密钥，旧密钥标记为即将过期",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "轮换DKIM密钥对",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "密钥对ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "轮换成功",
+                        "schema": {
+                            "$ref": "#/definitions/api.DKIMKeyPairResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "密钥对不存在",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dkim/keys/{id}/verify": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "验证指定密钥对的DNS记录是否正确配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DKIM"
+                ],
+                "summary": "验证DKIM DNS记录",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "密钥对ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "验证完成",
+                        "schema": {
+                            "$ref": "#/definitions/api.DKIMValidationResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "密钥对不存在",
                         "schema": {
                             "$ref": "#/definitions/api.APIResponse"
                         }
@@ -837,6 +1186,27 @@
                 }
             }
         },
+        "api.CreateDKIMKeyRequest": {
+            "type": "object",
+            "required": [
+                "domain",
+                "selector"
+            ],
+            "properties": {
+                "domain": {
+                    "type": "string",
+                    "example": "example.com"
+                },
+                "key_size": {
+                    "type": "integer",
+                    "example": 2048
+                },
+                "selector": {
+                    "type": "string",
+                    "example": "default"
+                }
+            }
+        },
         "api.CredentialListResponse": {
             "type": "object",
             "properties": {
@@ -857,6 +1227,57 @@
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.SMTPCredential"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "api.DKIMKeyPairListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DKIMKeyPair"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "api.DKIMKeyPairResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.DKIMKeyPair"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "api.DKIMValidationResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.DKIMValidationResult"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "api.DNSRecordResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.DNSRecord"
                 },
                 "success": {
                     "type": "boolean",
@@ -1066,6 +1487,32 @@
                 }
             }
         },
+        "api.RelayInfoData": {
+            "description": "SMTP中继域名和IP",
+            "type": "object",
+            "properties": {
+                "relayDomain": {
+                    "type": "string",
+                    "example": "mail.ict.run"
+                },
+                "relayIP": {
+                    "type": "string",
+                    "example": "110.151.22.51"
+                }
+            }
+        },
+        "api.RelayInfoResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/api.RelayInfoData"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "api.ResetPasswordResponse": {
             "type": "object",
             "properties": {
@@ -1190,6 +1637,117 @@
                 "username": {
                     "type": "string",
                     "example": "testuser"
+                }
+            }
+        },
+        "models.DKIMKeyPair": {
+            "type": "object",
+            "properties": {
+                "algorithm": {
+                    "description": "签名算法（rsa-sha256）",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dns_record": {
+                    "description": "生成的DNS TXT记录",
+                    "type": "string"
+                },
+                "dns_verified": {
+                    "description": "DNS记录是否已验证",
+                    "type": "boolean"
+                },
+                "domain": {
+                    "description": "签名域名",
+                    "type": "string"
+                },
+                "expires_at": {
+                    "description": "密钥过期时间",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key_size": {
+                    "description": "密钥长度（1024, 2048）",
+                    "type": "integer"
+                },
+                "last_verified": {
+                    "description": "最后验证时间",
+                    "type": "string"
+                },
+                "public_key": {
+                    "description": "公钥",
+                    "type": "string"
+                },
+                "selector": {
+                    "description": "DKIM选择器",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "active, inactive, expired",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DKIMValidationResult": {
+            "type": "object",
+            "properties": {
+                "checked_at": {
+                    "type": "string"
+                },
+                "dns_found": {
+                    "type": "boolean"
+                },
+                "dns_record": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "expected_dns": {
+                    "type": "string"
+                },
+                "selector": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.DNSRecord": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "记录名称，如 selector._domainkey.example.com",
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "优先级（对TXT记录通常为0）",
+                    "type": "integer"
+                },
+                "ttl": {
+                    "description": "TTL值",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "TXT",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "记录值",
+                    "type": "string"
                 }
             }
         },

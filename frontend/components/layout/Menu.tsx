@@ -24,9 +24,9 @@ const Sidebar = () => {
   const navigation = [
     { name: t('dashboard'), href: '/', icon: Home },
     { name: t('analytics'), href: '/analytics', icon: BarChart3 },
-    { name: t('apiKeys'), href: '/api-keys', icon: Key },
+    { name: t('apiKeys'), href: '/apiKeys', icon: Key },
     { name: 'SMTP', href: '/credentials', icon: Mail },
-    { name: t('logs'), href: '/logs', icon: FileText },
+    { name: t('logs'), href: '/maillogs', icon: FileText },
     { name: t('settings'), href: '/settings', icon: Settings },
   ];
 

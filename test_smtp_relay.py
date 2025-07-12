@@ -15,8 +15,8 @@ import argparse
 
 # 用户的SMTP凭据信息
 SMTP_CREDENTIALS = {
-    'username': 'relay_687057f1_66a7',
-    'password': 'f0278935404826a1d738b220ed2d6b95',
+    'username': 'relay_6870a4a7_1910',
+    'password': 'd4709cd549c88e14fdff1f12279808b9',
     'user_id': '687057f17058540b74a19a75',
     'credential_id': '68705c72ef7445ddb0602bd2'
 }

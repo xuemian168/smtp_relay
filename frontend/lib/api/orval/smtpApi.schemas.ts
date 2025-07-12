@@ -134,6 +134,57 @@ export interface ModelsMailLog {
   user_id?: string;
 }
 
+export interface ModelsDNSRecord {
+  /** 记录名称，如 selector._domainkey.example.com */
+  name?: string;
+  /** 优先级（对TXT记录通常为0） */
+  priority?: number;
+  /** TTL值 */
+  ttl?: number;
+  /** TXT */
+  type?: string;
+  /** 记录值 */
+  value?: string;
+}
+
+export interface ModelsDKIMValidationResult {
+  checked_at?: string;
+  dns_found?: boolean;
+  dns_record?: string;
+  domain?: string;
+  error_message?: string;
+  expected_dns?: string;
+  selector?: string;
+  valid?: boolean;
+}
+
+export interface ModelsDKIMKeyPair {
+  /** 签名算法（rsa-sha256） */
+  algorithm?: string;
+  created_at?: string;
+  /** 生成的DNS TXT记录 */
+  dns_record?: string;
+  /** DNS记录是否已验证 */
+  dns_verified?: boolean;
+  /** 签名域名 */
+  domain?: string;
+  /** 密钥过期时间 */
+  expires_at?: string;
+  id?: string;
+  /** 密钥长度（1024, 2048） */
+  key_size?: number;
+  /** 最后验证时间 */
+  last_verified?: string;
+  /** 公钥 */
+  public_key?: string;
+  /** DKIM选择器 */
+  selector?: string;
+  /** active, inactive, expired */
+  status?: string;
+  updated_at?: string;
+  user_id?: string;
+}
+
 export interface ApiUserInfoResponse {
   created_at?: string;
   email?: string;
@@ -192,6 +243,19 @@ export interface ApiResetPasswordResponse {
   success?: boolean;
 }
 
+/**
+ * SMTP中继域名和IP
+ */
+export interface ApiRelayInfoData {
+  relayDomain?: string;
+  relayIP?: string;
+}
+
+export interface ApiRelayInfoResponse {
+  data?: ApiRelayInfoData;
+  success?: boolean;
+}
+
 export interface ApiRegisterResponse {
   success?: boolean;
   token?: string;
@@ -226,11 +290,6 @@ export interface ApiRecentMailLogsResponse {
   success?: boolean;
 }
 
-export interface ApiQuotaStatsResponse {
-  data?: ApiQuotaStatsResponseData;
-  success?: boolean;
-}
-
 export type ApiQuotaStatsResponseDataUserSettings = {
   daily_quota?: number;
   hourly_quota?: number;
@@ -244,6 +303,11 @@ export type ApiQuotaStatsResponseData = {
   credential_quotas?: ApiQuotaStatsResponseDataCredentialQuotasItem[];
   user_settings?: ApiQuotaStatsResponseDataUserSettings;
 };
+
+export interface ApiQuotaStatsResponse {
+  data?: ApiQuotaStatsResponseData;
+  success?: boolean;
+}
 
 export interface ApiMailLogResponse {
   data?: ModelsMailLog;
@@ -274,6 +338,26 @@ export interface ApiLoginRequest {
   username: string;
 }
 
+export interface ApiDNSRecordResponse {
+  data?: ModelsDNSRecord;
+  success?: boolean;
+}
+
+export interface ApiDKIMValidationResponse {
+  data?: ModelsDKIMValidationResult;
+  success?: boolean;
+}
+
+export interface ApiDKIMKeyPairResponse {
+  data?: ModelsDKIMKeyPair;
+  success?: boolean;
+}
+
+export interface ApiDKIMKeyPairListResponse {
+  data?: ModelsDKIMKeyPair[];
+  success?: boolean;
+}
+
 export interface ApiCredentialResponse {
   data?: ModelsSMTPCredential;
   success?: boolean;
@@ -282,6 +366,12 @@ export interface ApiCredentialResponse {
 export interface ApiCredentialListResponse {
   data?: ModelsSMTPCredential[];
   success?: boolean;
+}
+
+export interface ApiCreateDKIMKeyRequest {
+  domain: string;
+  key_size?: number;
+  selector: string;
 }
 
 export type ApiCreateCredentialResponseData = {

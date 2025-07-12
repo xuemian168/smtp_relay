@@ -48,7 +48,7 @@ USER appuser
 EXPOSE 8080
 
 # 更新swag
-# RUN swag init -d ./internal/api -g server.go -o ./docs
+# RUN swag init --dir cmd/api,internal/api,internal/models --output docs
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

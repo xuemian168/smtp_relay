@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"io/ioutil"
+	"net"
+	"os"
 	_ "smtp-relay/docs"
 	"smtp-relay/internal/auth"
 	"smtp-relay/internal/database"
@@ -196,6 +200,20 @@ type QuotaStatsResponse struct {
 	} `json:"data"`
 }
 
+// RelayInfoData 用于中继信息响应
+// @Description SMTP中继域名和IP
+// @Success 200 {object} RelayInfoResponse
+// @Router /api/relay-info [get]
+type RelayInfoData struct {
+	RelayDomain string `json:"relayDomain" example:"mail.ict.run"`
+	RelayIP     string `json:"relayIP" example:"110.151.22.51"`
+}
+
+type RelayInfoResponse struct {
+	Success bool          `json:"success" example:"true"`
+	Data    RelayInfoData `json:"data"`
+}
+
 // Server API服务器结构
 type Server struct {
 	config            *Config
@@ -204,6 +222,7 @@ type Server struct {
 	authService       *auth.Service
 	credentialService *services.SMTPCredentialService
 	mailLogService    *services.MailLogService
+	dkimService       *services.DKIMService
 	router            *gin.Engine
 	server            *http.Server
 }
@@ -223,6 +242,7 @@ func NewServer(config *Config, db *database.MongoDB, logger *logrus.Logger, auth
 		authService:       authService,
 		credentialService: credentialService,
 		mailLogService:    mailLogService,
+		dkimService:       services.NewDKIMService(db, logger),
 	}
 }
 
@@ -325,8 +345,14 @@ func (s *Server) setupRoutes() {
 				stats.GET("", s.getStats)
 				stats.GET("/quota", s.getQuotaStats)
 			}
+
+			// DKIM管理
+			s.setupDKIMRoutes(authenticated)
 		}
 	}
+
+	// 新增 relay-info 路由
+	s.router.GET("/api/relay-info", s.getRelayInfo)
 }
 
 // 中间件
@@ -1245,4 +1271,56 @@ func (s *Server) getQuotaStats(c *gin.Context) {
 			"credential_quotas": quotaStats,
 		},
 	})
+}
+
+// getRelayInfo 获取SMTP中继域名和IP
+// @Summary 获取SMTP中继信息
+// @Description 获取SMTP中继域名和IP
+// @Tags system
+// @Accept json
+// @Produce json
+// @Success 200 {object} api.RelayInfoResponse "获取成功"
+// @Router /api/relay-info [get]
+func (s *Server) getRelayInfo(c *gin.Context) {
+	// 1. 优先从环境变量获取
+	relayDomain := os.Getenv("RELAY_DOMAIN")
+	relayIP := os.Getenv("RELAY_IP")
+
+	// 2. 如果未配置 relayDomain，使用默认
+	if relayDomain == "" {
+		relayDomain = "mail.ict.run"
+	}
+
+	// 3. 如果未配置 relayIP，尝试 DNS 解析 relayDomain
+	if relayIP == "" {
+		ips, err := net.LookupHost(relayDomain)
+		if err == nil && len(ips) > 0 {
+			relayIP = ips[0]
+		}
+	}
+
+	// 4. 如果 DNS 解析也失败，再尝试通过 ipinfo.io 获取公网出口IP
+	if relayIP == "" {
+		resp, err := http.Get("http://ipinfo.io/ip")
+		if err == nil {
+			defer resp.Body.Close()
+			body, _ := ioutil.ReadAll(resp.Body)
+			relayIP = string(body)
+		}
+	}
+
+	relayIP = trimSpace(relayIP)
+
+	c.JSON(200, RelayInfoResponse{
+		Success: true,
+		Data: RelayInfoData{
+			RelayDomain: relayDomain,
+			RelayIP:     relayIP,
+		},
+	})
+}
+
+// trimSpace 去除字符串首尾空白字符
+func trimSpace(s string) string {
+	return strings.TrimSpace(s)
 }

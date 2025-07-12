@@ -101,7 +101,23 @@
     "confirm": "确认",
     "copied": "已复制！",
     "copyFailed": "复制失败",
-    "copy": "复制"
+    "copy": "复制",
+    "complianceGuide": "合规性配置指引",
+    "dkimManagement": "DKIM密钥管理",
+    "complianceGuideDescription": "请按照以下步骤配置合规性，以确保您的邮件能够顺利投递。",
+    "spfRecord": "SPF记录",
+    "spfRecordDescription": "在发件域名（如qut.edu.kg）DNS中添加TXT记录：",
+    "dkimSignature": "DKIM签名",
+    "dkimSignatureDescription": "在{relayDomain}上为发件域名生成DKIM密钥对，将公钥TXT记录添加到发件域名DNS。",
+    "dkimSignatureDescription2": "配置Postfix集成DKIM签名。",
+    "reverseDns": "反向DNS（PTR）",
+    "reverseDnsDescription": "将{relayIP}的PTR记录指向{relayDomain}。",
+    "aRecord": "A记录",
+    "aRecordDescription": "为{relayDomain}添加A记录，指向{relayIP}。",
+    "detectionTools": "检测工具",
+    "spfDetection": "SPF检测",
+    "dkimDetection": "DKIM检测",
+    "or": "或"
   },
   "logs": {
     "title": "MailLog",
@@ -203,5 +219,17 @@
   },
   "maillogs": {
     "title": "邮件日志"
+  },
+  "dkim": {
+    "title": "DKIM管理",
+    "description": "管理您的DKIM密钥和DNS记录",
+    "add": "添加DKIM密钥",
+    "delete": "删除DKIM密钥",
+    "rotate": "旋转DKIM密钥",
+    "verify": "验证DKIM密钥",
+    "verifyFailedDefault": "记录不匹配"
+  },
+  "apiKeys": {
+    "title": "API密钥"
   }
 } 

@@ -12,6 +12,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - GIN_MODE=release
+      - RELAY_DOMAIN=mail.ict.run
+      - RELAY_IP=110.151.22.51
     depends_on:
       - mongodb
       - redis
